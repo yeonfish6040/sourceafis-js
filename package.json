@@ -10,6 +10,11 @@
   "author": "Yeonjun Lee <yeonfish6040@gmail.com>",
   "license": "ISC",
   "private": false,
+  "scripts": {
+    "build:java": "mvn -q -DskipTests -f sourceafis-java/pom.xml package && mkdir -p target && cp sourceafis-java/target/sourceafis-*.jar target/",
+    "build:classpath": "mvn -q -DincludeScope=runtime -f sourceafis-java/pom.xml dependency:build-classpath -Dmdep.outputFile=target/classpath.txt && mkdir -p target && cp sourceafis-java/target/classpath.txt target/",
+    "build": "npm run build:java && npm run build:classpath"
+  },
   "dependencies": {
     "java": "^0.18.0"
   }

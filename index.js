@@ -1,10 +1,12 @@
 const fs = require("fs");
 const path = require("path");
+const childProcess = require("child_process");
 const java = require("java");
 
 const ROOT_DIR = path.resolve(__dirname, "sourceafis-java");
 const TARGET_DIR = path.join(ROOT_DIR, "target");
-const CLASSPATH_FILE = path.join(__dirname, "classpath.txt");
+const ROOT_TARGET_DIR = path.join(__dirname, "target");
+const CLASSPATH_FILE = path.join(ROOT_TARGET_DIR, "classpath.txt");
 
 function addClasspathEntry(entry) {
   if (!entry) {
@@ -29,18 +31,53 @@ function loadClasspathFromFile() {
 }
 
 function findBuiltJar() {
-  if (!fs.existsSync(TARGET_DIR)) {
-    return null;
+  const rootTarget = path.join(__dirname, "target");
+  const rootCandidates = findJarInDir(rootTarget);
+  if (rootCandidates.length > 0) {
+    return rootCandidates[0];
+  }
+  return findJarInDir(TARGET_DIR)[0] || null;
+}
+
+function findJarInDir(dir) {
+  if (!fs.existsSync(dir)) {
+    return [];
   }
   const candidates = fs
-    .readdirSync(TARGET_DIR)
+    .readdirSync(dir)
     .filter((name) => name.startsWith("sourceafis-") && name.endsWith(".jar"))
-    .map((name) => path.join(TARGET_DIR, name));
+    .map((name) => path.join(dir, name));
   if (candidates.length === 0) {
-    return null;
+    return [];
   }
   candidates.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
-  return candidates[0];
+  return candidates;
+}
+
+function tryBuildJar() {
+  try {
+    fs.mkdirSync(ROOT_TARGET_DIR, { recursive: true });
+    childProcess.execSync("mvn -q -DskipTests -f sourceafis-java/pom.xml package", {
+      cwd: __dirname,
+      stdio: "ignore",
+    });
+    childProcess.execSync(
+      "mvn -q -DincludeScope=runtime -f sourceafis-java/pom.xml dependency:build-classpath -Dmdep.outputFile=target/classpath.txt",
+      { cwd: __dirname, stdio: "ignore" }
+    );
+    const builtClasspath = path.join(TARGET_DIR, "classpath.txt");
+    if (fs.existsSync(builtClasspath)) {
+      fs.copyFileSync(builtClasspath, CLASSPATH_FILE);
+    }
+    const builtJar = findJarInDir(TARGET_DIR)[0];
+    if (builtJar) {
+      const dest = path.join(ROOT_TARGET_DIR, path.basename(builtJar));
+      fs.copyFileSync(builtJar, dest);
+    }
+  } catch (error) {
+    return false;
+  }
+  return true;
 }
 
 function initClasspath() {
@@ -51,10 +88,16 @@ function initClasspath() {
   }
   loadClasspathFromFile();
   const jarOverride = process.env.SOURCEAFIS_JAR;
-  const jar = jarOverride || findBuiltJar();
+  let jar = jarOverride || findBuiltJar();
+  if (!jar && !jarOverride) {
+    if (tryBuildJar()) {
+      loadClasspathFromFile();
+      jar = findBuiltJar();
+    }
+  }
   if (!jar) {
     throw new Error(
-      "SourceAFIS jar not found. Build with mvn package and set SOURCEAFIS_JAR or run build-classpath."
+      "SourceAFIS jar not found. Build with mvn -f sourceafis-java/pom.xml package and run dependency:build-classpath, or set SOURCEAFIS_JAR."
     );
   }
   addClasspathEntry(jar);

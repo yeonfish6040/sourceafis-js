@@ -14,16 +14,30 @@ From the repository root:
 
 ```bash
 sdk use java 11
-mvn -q -DskipTests package
-mvn -q -DincludeScope=runtime dependency:build-classpath -Dmdep.outputFile=classpath.txt
+mvn -q -DskipTests -f sourceafis-java/pom.xml package
+mvn -q -DincludeScope=runtime -f sourceafis-java/pom.xml dependency:build-classpath -Dmdep.outputFile=target/classpath.txt
 ```
 
-This creates `classpath.txt` in the project root. The wrapper will load it automatically.
+Copy the built jar into the root `target` folder:
+
+```bash
+mkdir -p target
+cp sourceafis-java/target/sourceafis-*.jar target/
+cp sourceafis-java/target/classpath.txt target/
+```
+
+This creates `target/classpath.txt` in the project root. The wrapper will load it automatically.
 
 ## Install Node dependencies
 
 ```bash
 npm install
+```
+
+## Build with npm
+
+```bash
+npm run build
 ```
 
 ## Configuration
