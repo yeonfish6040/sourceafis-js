@@ -227,8 +227,14 @@ function importTemplate(templateBuffer) {
   return loaded.FingerprintCompatibility.importTemplateSync(bytes);
 }
 
-function createMatcher(template) {
+function createMatcher(templateOrBytes) {
   const loaded = getClasses();
+  if (templateOrBytes == null) {
+    throw new Error("createMatcher requires a FingerprintTemplate or serialized template bytes.");
+  }
+  const template = Buffer.isBuffer(templateOrBytes)
+    ? templateFromBytes(templateOrBytes)
+    : templateOrBytes;
   return new loaded.FingerprintMatcher(template);
 }
 

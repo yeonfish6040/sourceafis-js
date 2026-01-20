@@ -32,7 +32,7 @@ export function serializeTemplate(template: unknown): Uint8Array;
 export function templateFromBytes(bytes: Uint8Array): unknown;
 export function importTemplate(bytes: Uint8Array): unknown;
 
-export function createMatcher(template: unknown): unknown;
+export function createMatcher(template: unknown | Uint8Array): unknown;
 export function matchWithMatcher(matcher: unknown, candidateTemplate: unknown): number;
 
 export function withTransparencyZip(zipPath: string, fn: () => void): void;
