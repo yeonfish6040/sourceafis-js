@@ -1,0 +1,3 @@
+[submodule "sourceafis-java"]
+	path = sourceafis-java
+	url = https://github.com/robertvazan/sourceafis-java.git

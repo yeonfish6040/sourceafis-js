@@ -1,0 +1,16 @@
+{
+  "name": "@yeonfish6040/sourceafis-js",
+  "version": "0.0.1",
+  "description": "Node.js wrapper for SourceAFIS for Java via node-java",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:yeonfish6040/sourceafis-js.git"
+  },
+  "author": "Yeonjun Lee <yeonfish6040@gmail.com>",
+  "license": "ISC",
+  "private": false,
+  "dependencies": {
+    "java": "^0.18.0"
+  }
+}
