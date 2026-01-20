@@ -33,7 +33,7 @@ export function templateFromBytes(bytes: Uint8Array): unknown;
 export function importTemplate(bytes: Uint8Array): unknown;
 
 export function createMatcher(template: unknown | Uint8Array): unknown;
-export function matchWithMatcher(matcher: unknown, candidateTemplate: unknown): number;
+export function matchWithMatcher(matcher: unknown, candidateTemplate: unknown | Uint8Array): number;
 
 export function withTransparencyZip(zipPath: string, fn: () => void): void;
 

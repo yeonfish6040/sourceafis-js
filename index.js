@@ -238,8 +238,14 @@ function createMatcher(templateOrBytes) {
   return new loaded.FingerprintMatcher(template);
 }
 
-function matchWithMatcher(matcher, candidateTemplate) {
-  return matcher.matchSync(candidateTemplate);
+function matchWithMatcher(matcher, candidateTemplateOrBytes) {
+  if (candidateTemplateOrBytes == null) {
+    throw new Error("matchWithMatcher requires a candidate template or serialized bytes.");
+  }
+  const candidate = Buffer.isBuffer(candidateTemplateOrBytes)
+    ? templateFromBytes(candidateTemplateOrBytes)
+    : candidateTemplateOrBytes;
+  return matcher.matchSync(candidate);
 }
 
 function withTransparencyZip(zipPath, fn) {
