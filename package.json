@@ -1,6 +1,6 @@
 {
   "name": "@yeonfish6040/sourceafis-js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Node.js wrapper for SourceAFIS for Java via node-java",
   "main": "index.js",
   "repository": {
