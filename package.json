@@ -1,6 +1,6 @@
 {
   "name": "sourceafis-js",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Node.js wrapper for SourceAFIS for Java via node-java",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
