@@ -154,8 +154,6 @@ function capturePairing(probeTemplate, candidateTemplate) {
     const TransparencyBuffer = java.import("com.machinezoo.sourceafis.transparency.TransparencyBuffer");
     const BestPairingKey = java.import("com.machinezoo.sourceafis.transparency.keys.BestPairingKey");
     const PairingKey = java.import("com.machinezoo.sourceafis.transparency.keys.PairingKey");
-    const ProbeTemplateKey = java.import("com.machinezoo.sourceafis.transparency.keys.ProbeTemplateKey");
-    const CandidateTemplateKey = java.import("com.machinezoo.sourceafis.transparency.keys.CandidateTemplateKey");
     const buffer = new TransparencyBuffer();
     const transparency = buffer.openSync();
     let score = 0;
@@ -175,36 +173,66 @@ function capturePairing(probeTemplate, candidateTemplate) {
         const keys = archive.keysSync ? archive.keysSync() : [];
         throw new Error(`Transparency data missing pairing. Keys: ${keys}`);
     }
-    const probeOpt = archive.deserializeSync(new ProbeTemplateKey());
-    if (!probeOpt.isPresentSync()) {
-        throw new Error("Transparency data missing probe template.");
-    }
-    const candidateOpt = archive.deserializeSync(new CandidateTemplateKey());
-    if (!candidateOpt.isPresentSync()) {
-        throw new Error("Transparency data missing candidate template.");
-    }
     const pairing = pairingOpt.getSync();
     const pairs = extractPairs(pairing);
-    const probePersistent = probeOpt.getSync();
-    const candidatePersistent = candidateOpt.getSync();
     return {
         pairing,
-        probeTemplate: persistentToTemplate(probePersistent),
-        candidateTemplate: persistentToTemplate(candidatePersistent),
+        probeTemplate: null,
+        candidateTemplate: null,
         score,
         pairs,
     };
 }
+function toJavaBytes(buffer) {
+    const bytes = new Array(buffer.length);
+    for (let i = 0; i < buffer.length; i += 1) {
+        const value = buffer[i];
+        bytes[i] = value > 127 ? value - 256 : value;
+    }
+    return java.newArray("byte", bytes);
+}
+function decodePersistentTemplate(templateBytes) {
+    const InputTemplateKey = java.import("com.machinezoo.sourceafis.transparency.keys.InputTemplateKey");
+    const key = new InputTemplateKey();
+    try {
+        const javaBytes = templateBytes instanceof Uint8Array ? toJavaBytes(templateBytes) : templateBytes;
+        return key.deserializeSync("application/cbor", javaBytes);
+    }
+    catch (error) {
+        return null;
+    }
+}
 function mosaicFromTemplates(probeTemplate, candidateTemplate, options = {}) {
-    var _a, _b;
+    var _a, _b, _c, _d;
+    const probeBytes = isByteArray(probeTemplate)
+        ? probeTemplate
+        : (_a = probeTemplate === null || probeTemplate === void 0 ? void 0 : probeTemplate.toByteArraySync) === null || _a === void 0 ? void 0 : _a.call(probeTemplate);
+    const candidateBytes = isByteArray(candidateTemplate)
+        ? candidateTemplate
+        : (_b = candidateTemplate === null || candidateTemplate === void 0 ? void 0 : candidateTemplate.toByteArraySync) === null || _b === void 0 ? void 0 : _b.call(candidateTemplate);
     const resolvedProbe = isByteArray(probeTemplate) ? (0, sourceafis_1.templateFromBytes)(probeTemplate) : probeTemplate;
     const resolvedCandidate = isByteArray(candidateTemplate)
         ? (0, sourceafis_1.templateFromBytes)(candidateTemplate)
         : candidateTemplate;
-    const { probeTemplate: probe, candidateTemplate: candidate, score, pairs } = capturePairing(resolvedProbe, resolvedCandidate);
+    let { probeTemplate: probe, candidateTemplate: candidate, score, pairs } = capturePairing(resolvedProbe, resolvedCandidate);
+    if (!probe && probeBytes) {
+        const decoded = decodePersistentTemplate(probeBytes);
+        if (decoded) {
+            probe = persistentToTemplate(decoded);
+        }
+    }
+    if (!candidate && candidateBytes) {
+        const decoded = decodePersistentTemplate(candidateBytes);
+        if (decoded) {
+            candidate = persistentToTemplate(decoded);
+        }
+    }
+    if (!probe || !candidate) {
+        throw new Error("Failed to decode minutiae from templates. Pass native SourceAFIS template bytes or FingerprintTemplate objects.");
+    }
     const transform = computeTransform(pairs, probe, candidate);
-    const mergeMatched = (_a = options.mergeMatched) !== null && _a !== void 0 ? _a : "probe";
-    const includeUnmatched = (_b = options.includeUnmatched) !== null && _b !== void 0 ? _b : true;
+    const mergeMatched = (_c = options.mergeMatched) !== null && _c !== void 0 ? _c : "probe";
+    const includeUnmatched = (_d = options.includeUnmatched) !== null && _d !== void 0 ? _d : true;
     const pairedCandidates = new Set(pairs.map((pair) => pair.candidate));
     const resultMinutiae = probe.minutiae.map((m) => ({ ...m }));
     for (const pair of pairs) {
