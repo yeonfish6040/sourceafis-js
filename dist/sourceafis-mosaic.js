@@ -153,6 +153,7 @@ function capturePairing(probeTemplate, candidateTemplate) {
     (0, sourceafis_1._getClasses)();
     const TransparencyBuffer = java.import("com.machinezoo.sourceafis.transparency.TransparencyBuffer");
     const BestPairingKey = java.import("com.machinezoo.sourceafis.transparency.keys.BestPairingKey");
+    const PairingKey = java.import("com.machinezoo.sourceafis.transparency.keys.PairingKey");
     const ProbeTemplateKey = java.import("com.machinezoo.sourceafis.transparency.keys.ProbeTemplateKey");
     const CandidateTemplateKey = java.import("com.machinezoo.sourceafis.transparency.keys.CandidateTemplateKey");
     const buffer = new TransparencyBuffer();
@@ -166,9 +167,13 @@ function capturePairing(probeTemplate, candidateTemplate) {
         transparency.closeSync();
     }
     const archive = buffer.toArchiveSync();
-    const pairingOpt = archive.deserializeSync(new BestPairingKey());
+    let pairingOpt = archive.deserializeSync(new BestPairingKey());
     if (!pairingOpt.isPresentSync()) {
-        throw new Error("Transparency data missing best-pairing.");
+        pairingOpt = archive.deserializeSync(new PairingKey());
+    }
+    if (!pairingOpt.isPresentSync()) {
+        const keys = archive.keysSync ? archive.keysSync() : [];
+        throw new Error(`Transparency data missing pairing. Keys: ${keys}`);
     }
     const probeOpt = archive.deserializeSync(new ProbeTemplateKey());
     if (!probeOpt.isPresentSync()) {
