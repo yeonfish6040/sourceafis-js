@@ -154,6 +154,7 @@ function capturePairing(probeTemplate, candidateTemplate) {
     const TransparencyBuffer = java.import("com.machinezoo.sourceafis.transparency.TransparencyBuffer");
     const BestPairingKey = java.import("com.machinezoo.sourceafis.transparency.keys.BestPairingKey");
     const PairingKey = java.import("com.machinezoo.sourceafis.transparency.keys.PairingKey");
+    const RootsKey = java.import("com.machinezoo.sourceafis.transparency.keys.RootsKey");
     const buffer = new TransparencyBuffer();
     const transparency = buffer.openSync();
     let score = 0;
@@ -169,12 +170,38 @@ function capturePairing(probeTemplate, candidateTemplate) {
     if (!pairingOpt.isPresentSync()) {
         pairingOpt = archive.deserializeSync(new PairingKey());
     }
-    if (!pairingOpt.isPresentSync()) {
-        const keys = archive.keysSync ? archive.keysSync() : [];
-        throw new Error(`Transparency data missing pairing. Keys: ${keys}`);
+    let pairing = null;
+    let pairs = [];
+    if (pairingOpt.isPresentSync()) {
+        pairing = pairingOpt.getSync();
+        pairs = extractPairs(pairing);
     }
-    const pairing = pairingOpt.getSync();
-    const pairs = extractPairs(pairing);
+    else {
+        const rootsOpt = archive.deserializeSync(new RootsKey());
+        if (rootsOpt.isPresentSync()) {
+            const roots = rootsOpt.getSync();
+            const rootPairs = [];
+            if (Array.isArray(roots)) {
+                for (const pair of roots) {
+                    rootPairs.push({
+                        probe: Number(pair.probeSync()),
+                        candidate: Number(pair.candidateSync()),
+                    });
+                }
+            }
+            const unique = new Map();
+            for (const pair of rootPairs) {
+                if (!unique.has(pair.candidate)) {
+                    unique.set(pair.candidate, pair.probe);
+                }
+            }
+            pairs = Array.from(unique, ([candidate, probe]) => ({ probe, candidate }));
+        }
+    }
+    if (pairs.length === 0) {
+        const keys = archive.keysSync ? archive.keysSync() : [];
+        throw new Error(`Transparency data missing pairing/roots. Keys: ${keys}`);
+    }
     return {
         pairing,
         probeTemplate: null,
