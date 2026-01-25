@@ -40,6 +40,8 @@ npm install
 npm run build
 ```
 
+This compiles TypeScript to `dist/`, builds SourceAFIS + Transparency jars, and merges their classpaths into `target/classpath.txt`.
+
 ## Configuration
 
 You can override the classpath/jar with environment variables:
@@ -51,7 +53,7 @@ You can override the classpath/jar with environment variables:
 
 ```js
 const fs = require("fs");
-const sourceafis = require("./index");
+const sourceafis = require("@yeonfish6040/sourceafis-js");
 
 const probe = fs.readFileSync("probe.png");
 const candidate = fs.readFileSync("candidate.png");

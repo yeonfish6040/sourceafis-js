@@ -1,3 +1,6 @@
 [submodule "sourceafis-java"]
 	path = sourceafis-java
 	url = https://github.com/robertvazan/sourceafis-java.git
+[submodule "sourceafis-transparency-java"]
+	path = sourceafis-transparency-java
+	url = https://github.com/robertvazan/sourceafis-transparency-java.git

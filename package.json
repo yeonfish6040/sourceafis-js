@@ -2,7 +2,8 @@
   "name": "sourceafis-js",
   "version": "0.0.1",
   "description": "Node.js wrapper for SourceAFIS for Java via node-java",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git@github.com:yeonfish6040/sourceafis-js.git"
@@ -11,11 +12,18 @@
   "license": "ISC",
   "private": false,
   "scripts": {
+    "build:ts": "tsc -p tsconfig.json",
     "build:java": "mvn -q -DskipTests -f sourceafis-java/pom.xml package && mkdir -p target && cp sourceafis-java/target/sourceafis-*.jar target/",
-    "build:classpath": "mvn -q -DincludeScope=runtime -f sourceafis-java/pom.xml dependency:build-classpath -Dmdep.outputFile=target/classpath.txt && mkdir -p target && cp sourceafis-java/target/classpath.txt target/",
-    "build": "npm run build:java && npm run build:classpath"
+    "build:classpath": "mvn -q -DincludeScope=runtime -f sourceafis-java/pom.xml dependency:build-classpath -Dmdep.outputFile=target/classpath.txt && mvn -q -DincludeScope=runtime -f sourceafis-transparency-java/pom.xml dependency:build-classpath -Dmdep.outputFile=target/classpath.txt && node scripts/merge-classpath.js",
+    "build:transparency": "mvn -q -DskipTests -f sourceafis-transparency-java/pom.xml package && mkdir -p target && cp sourceafis-transparency-java/target/sourceafis-transparency-*.jar target/",
+    "build": "npm run build:ts && npm run build:java && npm run build:transparency && npm run build:classpath"
   },
   "dependencies": {
-    "java": "^0.18.0"
+    "java": "^0.18.0",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.7",
+    "typescript": "^5.6.3"
   }
 }
