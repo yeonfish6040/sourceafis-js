@@ -157,6 +157,34 @@ sourceafis.withTransparencyZip("transparency.zip", () => {
 
 `withTransparencyZip` expects synchronous work inside the callback.
 
+### Minutiae mosaicking (pairing-based)
+
+```js
+const probe = fs.readFileSync("probe.png");
+const candidate = fs.readFileSync("candidate.png");
+
+const result = sourceafis.mosaicFromImages(probe, candidate, { dpi: 300 });
+console.log("score:", result.score);
+console.log("pairs:", result.pairs.length);
+
+// result.template contains the merged minutiae list
+// result.transform can be used to align images
+```
+
+### Image mosaicking (using transform)
+
+```js
+const probe = fs.readFileSync("probe.png");
+const candidate = fs.readFileSync("candidate.png");
+
+const result = sourceafis.mosaicFromImages(probe, candidate, { dpi: 300 });
+const merged = sourceafis.mosaicImages(probe, candidate, result.transform, {
+  alpha: 0.7,
+  backgroundThreshold: 245,
+});
+fs.writeFileSync("mosaic.png", merged);
+```
+
 ## Notes
 
 - `FingerprintMatcher` creation is expensive. Reuse it for multiple candidate comparisons.
