@@ -13,10 +13,10 @@
   "private": false,
   "scripts": {
     "build:ts": "tsc -p tsconfig.json",
-    "build:java": "mvn -q -DskipTests -f sourceafis-java/pom.xml package && mkdir -p target && cp sourceafis-java/target/sourceafis-*.jar target/",
-    "build:classpath": "mvn -q -DincludeScope=runtime -f sourceafis-java/pom.xml dependency:build-classpath -Dmdep.outputFile=target/classpath.txt && mvn -q -DincludeScope=runtime -f sourceafis-transparency-java/pom.xml dependency:build-classpath -Dmdep.outputFile=target/classpath.txt && node scripts/merge-classpath.js",
-    "build:transparency": "mvn -q -DskipTests -f sourceafis-transparency-java/pom.xml package && mkdir -p target && cp sourceafis-transparency-java/target/sourceafis-transparency-*.jar target/",
-    "build": "npm run build:ts && npm run build:java && npm run build:transparency && npm run build:classpath"
+    "build:java": "mvn -q -DskipTests -f sourceafis-java/pom.xml -Dmaven.source.skip=true -Dmaven.javadoc.skip=true clean package && mkdir -p target clean package",
+    "build:classpath": "mvn -q -DincludeScope=runtime -f sourceafis-java/pom.xml dependency:build-classpath -Dmdep.outputFile=target/classpath.txt",
+    "build:cp": "rm -rf target/* && cp sourceafis-java/target/* target/ 2>/dev/null",
+    "build": "npm run build:ts && npm run build:java && npm run build:classpath"
   },
   "dependencies": {
     "java": "^0.18.0",
@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.19.7",
+    "@types/java": "^0.9.6",
     "typescript": "^5.6.3"
   }
 }

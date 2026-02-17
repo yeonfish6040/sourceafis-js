@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mosaicImages = exports.mosaicFromImages = exports.mosaicFromTemplates = exports.getTransparencyClasses = exports.withTransparencyZip = exports.matchImages = exports.matchTemplates = exports.matchWithMatcher = exports.createMatcher = exports.importTemplate = exports.templateFromBytes = exports.serializeTemplate = exports.templateFromRaw = exports.templateFromEncoded = exports.templateFromImage = exports.imageFromRaw = exports.imageFromEncoded = void 0;
+exports.matchImages = exports.matchTemplates = exports.matchWithMatcher = exports.createMatcher = exports.importTemplate = exports.templateFromBytes = exports.serializeTemplate = exports.templateFromRaw = exports.templateFromEncoded = exports.templateFromImage = exports.imageFromRaw = exports.imageFromEncoded = void 0;
 var sourceafis_1 = require("./sourceafis");
 Object.defineProperty(exports, "imageFromEncoded", { enumerable: true, get: function () { return sourceafis_1.imageFromEncoded; } });
 Object.defineProperty(exports, "imageFromRaw", { enumerable: true, get: function () { return sourceafis_1.imageFromRaw; } });
@@ -14,10 +14,3 @@ Object.defineProperty(exports, "createMatcher", { enumerable: true, get: functio
 Object.defineProperty(exports, "matchWithMatcher", { enumerable: true, get: function () { return sourceafis_1.matchWithMatcher; } });
 Object.defineProperty(exports, "matchTemplates", { enumerable: true, get: function () { return sourceafis_1.matchTemplates; } });
 Object.defineProperty(exports, "matchImages", { enumerable: true, get: function () { return sourceafis_1.matchImages; } });
-var sourceafis_transparency_1 = require("./sourceafis-transparency");
-Object.defineProperty(exports, "withTransparencyZip", { enumerable: true, get: function () { return sourceafis_transparency_1.withTransparencyZip; } });
-Object.defineProperty(exports, "getTransparencyClasses", { enumerable: true, get: function () { return sourceafis_transparency_1.getTransparencyClasses; } });
-var sourceafis_mosaic_1 = require("./sourceafis-mosaic");
-Object.defineProperty(exports, "mosaicFromTemplates", { enumerable: true, get: function () { return sourceafis_mosaic_1.mosaicFromTemplates; } });
-Object.defineProperty(exports, "mosaicFromImages", { enumerable: true, get: function () { return sourceafis_mosaic_1.mosaicFromImages; } });
-Object.defineProperty(exports, "mosaicImages", { enumerable: true, get: function () { return sourceafis_mosaic_1.mosaicImages; } });

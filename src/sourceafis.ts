@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-const java: any = require("java");
+import * as java from "java";
 
 export interface ImageOptions {
   dpi?: number | null;
@@ -12,13 +12,10 @@ export type SourceAfisClasses = {
   FingerprintTemplate: any;
   FingerprintMatcher: any;
   FingerprintCompatibility: any;
-  FingerprintTransparency: any;
   FileOutputStream: any;
 };
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
-const ROOT_DIR = path.resolve(PROJECT_ROOT, "sourceafis-java");
-const TARGET_DIR = path.join(ROOT_DIR, "target");
 const ROOT_TARGET_DIR = path.join(PROJECT_ROOT, "target");
 const CLASSPATH_FILE = path.join(ROOT_TARGET_DIR, "classpath.txt");
 
@@ -44,7 +41,7 @@ function loadClasspathFromFile(): void {
   }
 }
 
-function findJarInDir(dir: string, prefix: string): string[] {
+function findJar(dir: string, prefix: string): string[] {
   if (!fs.existsSync(dir)) {
     return [];
   }
@@ -59,23 +56,6 @@ function findJarInDir(dir: string, prefix: string): string[] {
   return candidates;
 }
 
-function findBuiltJar(): string | null {
-  const rootCandidates = findJarInDir(ROOT_TARGET_DIR, "sourceafis-");
-  if (rootCandidates.length > 0) {
-    return rootCandidates[0];
-  }
-  return findJarInDir(TARGET_DIR, "sourceafis-")[0] || null;
-}
-
-function findTransparencyJar(): string | null {
-  const rootCandidates = findJarInDir(ROOT_TARGET_DIR, "sourceafis-transparency-");
-  if (rootCandidates.length > 0) {
-    return rootCandidates[0];
-  }
-  const transparencyTarget = path.resolve(PROJECT_ROOT, "sourceafis-transparency-java", "target");
-  return findJarInDir(transparencyTarget, "sourceafis-transparency-")[0] || null;
-}
-
 function initClasspath(): void {
   if (process.env.SOURCEAFIS_CLASSPATH) {
     for (const entry of process.env.SOURCEAFIS_CLASSPATH.split(path.delimiter)) {
@@ -83,18 +63,19 @@ function initClasspath(): void {
     }
   }
   loadClasspathFromFile();
+
   const jarOverride = process.env.SOURCEAFIS_JAR;
-  const jar = jarOverride || findBuiltJar();
+  // check if override file exists
+  if (jarOverride && !fs.existsSync(path.resolve(process.cwd(), jarOverride))){
+    throw new Error("Cannot find SOURCEAFIS_JAR override file.")
+  }
+
+  const jar = jarOverride || findJar(ROOT_TARGET_DIR, "sourceafis-")[0] || null;
   if (!jar) {
-    throw new Error(
-      "SourceAFIS jar not found. Run npm run build or set SOURCEAFIS_JAR."
-    );
+    throw new Error("SourceAFIS jar not found. Run npm run build or set SOURCEAFIS_JAR to override.");
   }
+
   addClasspathEntry(jar);
-  const transparencyJar = findTransparencyJar();
-  if (transparencyJar) {
-    addClasspathEntry(transparencyJar);
-  }
 }
 
 function bufferToJavaBytes(buffer: Uint8Array): any {
@@ -122,7 +103,6 @@ function initClasses(): SourceAfisClasses {
     FingerprintTemplate: java.import("com.machinezoo.sourceafis.FingerprintTemplate"),
     FingerprintMatcher: java.import("com.machinezoo.sourceafis.FingerprintMatcher"),
     FingerprintCompatibility: java.import("com.machinezoo.sourceafis.FingerprintCompatibility"),
-    FingerprintTransparency: java.import("com.machinezoo.sourceafis.FingerprintTransparency"),
     FileOutputStream: java.import("java.io.FileOutputStream"),
   };
 }
@@ -134,10 +114,6 @@ function getClasses(): SourceAfisClasses {
     classes = initClasses();
   }
   return classes;
-}
-
-export function _getClasses(): SourceAfisClasses {
-  return getClasses();
 }
 
 function isByteArray(value: unknown): value is Uint8Array {
